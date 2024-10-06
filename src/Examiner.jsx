@@ -3,10 +3,10 @@ import './styles.css';
 
 const Examiner = () => {
   const [students, setStudents] = useState([
-    { name: 'Anshah', registerNumber: '011', projectType: 'MAJOR', status: 'Inomplete' },
-    { name: 'Bhoomika', registerNumber: '012', projectType: 'MINOR', status: 'Incomplete' },
-    { name: 'Alice', registerNumber: '013', projectType: 'MAJOR', status: 'Inomplete' },
-    { name: 'Bob', registerNumber: '044', projectType: 'MAJOR', status: 'Inomplete' },
+    { registerNumber: '011', name: 'Anshah', projectType: 'MAJOR', midSemStatus: 'Inomplete' , endSemStatus: 'Incomplete' },
+    { registerNumber: '012', name: 'Bhoomika', projectType: 'MINOR', midSemStatus: 'Inomplete' , endSemStatus: 'Incomplete'  },
+    { registerNumber: '013', name: 'Alice', projectType: 'MAJOR', midSemStatus: 'Inomplete' , endSemStatus: 'Incomplete'  },
+    { registerNumber: '044', name: 'Bob', projectType: 'MAJOR', midSemStatus: 'Inomplete' , endSemStatus: 'Incomplete'  },
   ]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -68,13 +68,16 @@ const Examiner = () => {
       }
     }
   }, [currentStudent]);
-
+  
   const openModal = (student, type) => {
-    if (student.status === 'Complete') {
+    if (type === 'midSem' && student.midSemStatus === 'Complete') {
       setCurrentStudent(student);
-      setModalOpen(type); // Store which type of marks are being entered
+      setModalOpen(type);
+    } else if (type === 'endSem' && student.endSemStatus === 'Complete') {
+      setCurrentStudent(student);
+      setModalOpen(type);
     } else {
-      alert('Evaluation not completed. You cannot enter marks.');
+      alert(`Evaluation not completed for ${type}. You cannot enter marks.`);
     }
   };
 
@@ -172,8 +175,8 @@ const Examiner = () => {
     return totalMidSem + totalEndSem;
   };
   
-  // Function to change the evaluation status of a student to "Complete"
-  const toggleEvaluationStatus = (student) => {
+ /* // Function to change the evaluation status of a student to "Complete"
+  const toggleEvaluationStatus = (student, type) => {
   // Check if the current status is 'Incomplete'
   if (student.status === 'Incomplete') {
     const updatedStudents = students.map((s) =>
@@ -190,7 +193,19 @@ const Examiner = () => {
     localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
 
   }
-};
+};*/
+
+  const toggleEvaluationStatus = (student, type) => {
+    const updatedStudents = students.map((s) => {
+      if (s.registerNumber === student.registerNumber) {
+        const newStatus = s[`${type}Status`] === 'Incomplete' ? 'Complete' : 'Incomplete';
+        return { ...s, [`${type}Status`]: newStatus };
+      }
+      return s;
+    });
+    setStudents(updatedStudents);
+    localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+  };
 
 
   return (
@@ -214,10 +229,11 @@ const Examiner = () => {
         <table id="studentsTable">
           <thead>
             <tr>
-              <th>STUDENT NAME</th>
               <th>REGISTER NUMBER</th>
+              <th>STUDENT NAME</th>
               <th>PROJECT TYPE</th>
-              <th>EVALUATION STATUS</th>
+              <th>MID-SEM EVALUATION STATUS</th>
+              <th>END-SEM EVALUATION STATUS</th>
               <th>ENTER MID-SEM MARKS</th>
               <th>ENTER END-SEM MARKS</th>
               <th>TOTAL MARKS</th> 
@@ -227,15 +243,22 @@ const Examiner = () => {
           <tbody>
             {students.map((student, index) => (
               <tr key={student.registerNumber} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
-                <td>{student.name}</td>
                 <td>{student.registerNumber}</td>
+                <td>{student.name}</td>
                 <td>{student.projectType}</td>
                 <td
-                  className={student.status === 'Complete' ? 'status-complete' : 'status-incomplete'}
-                  onClick={() => toggleEvaluationStatus(student)} // Toggle status on click
+                  className={student.midSemStatus === 'Complete' ? 'status-complete' : 'status-incomplete'}
+                  onClick={() => toggleEvaluationStatus(student, 'midSem')} // Toggle status on click
                   style={{ cursor: 'pointer' }}
                 >
-                  {student.status}
+                  {student.midSemStatus}
+                </td>
+                <td
+                  className={student.endSemStatus === 'Complete' ? 'status-complete' : 'status-incomplete'}
+                  onClick={() => toggleEvaluationStatus(student, 'endSem')} // Toggle status on click
+                  style={{ cursor: 'pointer' }}
+                >
+                  {student.endSemStatus}
                 </td>
                 <td>
                   <button onClick={() => openModal(student, 'midSem')} 
@@ -289,8 +312,10 @@ const Examiner = () => {
                 </div>
               ))}
             </div>
-            <button onClick={submitMarks} className="submit-modal-button">Submit Marks</button>
-            <button onClick={closeModal} className="close-modal-button">Close</button>
+            <div className="button-group">
+              <button onClick={submitMarks}>Submit Marks</button>
+              <button onClick={closeModal}>Close</button>
+            </div>
           </div>
         </div>
       )}
@@ -299,4 +324,3 @@ const Examiner = () => {
 };
 
 export default Examiner;
-
