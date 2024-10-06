@@ -7,9 +7,6 @@ const Tw = () => {
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <div>
-                <div className="mb-4">
-                    <img src="irislogo.png" alt="logo" className="w-full h-auto rounded" />
-                </div>
                 <div className="bg-white p-6 rounded-lg shadow-lg text-center w-80">
                     <p className="text-xl font-semibold mb-4">Faculty Name: Mr AmritPal</p>
                     <p className="text-lg mb-6">Choose a role:</p>
