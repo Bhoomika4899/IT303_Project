@@ -5,6 +5,7 @@ import Tw from './Tw';
 import Guide from './Guide';
 import Examiner from './Examiner';
 import Student from './Student';
+import Student2 from './Student2';
 import StudentStatus from './StudentStatus';
 
 const App = () => {
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/guide" element={<Guide />} />
         <Route path="/examiner" element={<Examiner />} />
         <Route path="/student" element={<Student />} />
+        <Route path="/student2" element={<Student2 />} />
         <Route path="/studentstatus" element={<StudentStatus />} />
       </Routes>
     </Router>
@@ -22,4 +24,3 @@ const App = () => {
 }
 
 export default App;
-
