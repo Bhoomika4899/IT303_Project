@@ -3,10 +3,10 @@ import './styles.css';
 
 const Guide = () => {
   const [students, setStudents] = useState([
-    { name: 'John', registerNumber: '011', projectType: 'MAJOR', status: 'Inomplete' },
-    { name: 'Jane', registerNumber: '012', projectType: 'MINOR', status: 'Incomplete' },
-    { name: 'Ria D', registerNumber: '013', projectType: 'MAJOR', status: 'Inomplete' },
-    { name: 'Brown', registerNumber: '044', projectType: 'MAJOR', status: 'Inomplete' },
+    { registerNumber: '011', name: 'John', projectType: 'MAJOR', midSemStatus: 'Inomplete' , endSemStatus: 'Incomplete' },
+    { registerNumber: '012', name: 'Jane', projectType: 'MINOR', midSemStatus: 'Inomplete' , endSemStatus: 'Incomplete' },
+    { registerNumber: '013', name: 'Ria D', projectType: 'MAJOR', midSemStatus: 'Inomplete' , endSemStatus: 'Incomplete' },
+    { registerNumber: '044', name: 'Brown', projectType: 'MAJOR', midSemStatus: 'Inomplete' , endSemStatus: 'Incomplete' },
   ]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -71,13 +71,16 @@ const Guide = () => {
       }
     }
   }, [currentStudent]);
-
+  
   const openModal = (student, type) => {
-    if (student.status === 'Complete') {
+    if (type === 'midSem' && student.midSemStatus === 'Complete') {
       setCurrentStudent(student);
-      setModalOpen(type); // Store which type of marks are being entered
+      setModalOpen(type);  // Store which type of marks are being entered
+    } else if (type === 'endSem' && student.endSemStatus === 'Complete') {
+      setCurrentStudent(student);
+      setModalOpen(type);
     } else {
-      alert('Evaluation not completed. You cannot enter marks.');
+      alert(`Evaluation not completed for ${type}. You cannot enter marks.`);
     }
   };
 
@@ -179,7 +182,7 @@ const Guide = () => {
     return totalMidSem + totalEndSem;
   };
   
-  // Function to change the evaluation status of a student to "Complete"
+  /*// Function to change the evaluation status of a student to "Complete"
   const toggleEvaluationStatus = (student) => {
   // Check if the current status is 'Incomplete'
   if (student.status === 'Incomplete') {
@@ -197,7 +200,19 @@ const Guide = () => {
     localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
 
   }
-};
+};*/
+
+  const toggleEvaluationStatus = (student, type) => {
+    const updatedStudents = students.map((s) => {
+      if (s.registerNumber === student.registerNumber) {
+        const newStatus = s[`${type}Status`] === 'Incomplete' ? 'Complete' : 'Incomplete';
+        return { ...s, [`${type}Status`]: newStatus };
+      }
+      return s;
+    });
+    setStudents(updatedStudents);
+    localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+  };
 
 
   return (
@@ -220,10 +235,11 @@ const Guide = () => {
         <table id="studentsTable">
           <thead>
             <tr>
-              <th>STUDENT NAME</th>
               <th>REGISTER NUMBER</th>
+              <th>STUDENT NAME</th>
               <th>PROJECT TYPE</th>
-              <th>EVALUATION STATUS</th>
+              <th>MID-SEM EVALUATION STATUS</th>
+              <th>END-SEM EVALUATION STATUS</th>
               <th>ENTER MID-SEM MARKS</th>
               <th>ENTER END-SEM MARKS</th>
               <th>TOTAL MARKS</th> 
@@ -233,15 +249,22 @@ const Guide = () => {
           <tbody>
             {students.map((student, index) => (
               <tr key={student.registerNumber} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
-                <td>{student.name}</td>
                 <td>{student.registerNumber}</td>
+                <td>{student.name}</td>
                 <td>{student.projectType}</td>
                 <td
-                  className={student.status === 'Complete' ? 'status-complete' : 'status-incomplete'}
-                  onClick={() => toggleEvaluationStatus(student)} // Toggle status on click
+                  className={student.midSemStatus === 'Complete' ? 'status-complete' : 'status-incomplete'}
+                  onClick={() => toggleEvaluationStatus(student, 'midSem')} // Toggle status on click
                   style={{ cursor: 'pointer' }}
                 >
-                  {student.status}
+                  {student.midSemStatus}
+                </td>
+                <td
+                  className={student.endSemStatus === 'Complete' ? 'status-complete' : 'status-incomplete'}
+                  onClick={() => toggleEvaluationStatus(student, 'endSem')} // Toggle status on click
+                  style={{ cursor: 'pointer' }}
+                >
+                  {student.endSemStatus}
                 </td>
                 <td>
                   <button onClick={() => openModal(student, 'midSem')} 
@@ -295,8 +318,10 @@ const Guide = () => {
                 </div>
               ))}
             </div>
-            <button onClick={submitMarks} className="submit-modal-button">Submit Marks</button>
-            <button onClick={closeModal} className="close-modal-button">Close</button>
+            <div className="button-group">
+              <button onClick={submitMarks}>Submit Marks</button>
+              <button onClick={closeModal}>Close</button>
+            </div>
           </div>
         </div>
       )}
@@ -305,4 +330,3 @@ const Guide = () => {
 };
 
 export default Guide;
-
