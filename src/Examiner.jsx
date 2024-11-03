@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import emailjs from 'emailjs-com';
 import './styles.css';
+emailjs.init("PCF_pjb2Ugr7vdxEU");
+
 
 const Examiner = () => {
   const [students, setStudents] = useState([
@@ -207,6 +210,69 @@ const Examiner = () => {
     localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
   };
 
+  // Function to calculate the current total marks based on input
+const calculateCurrentTotal = () => {
+  const currentMarks = marks[modalOpen];
+  return Object.values(currentMarks).reduce((sum, mark) => sum + (parseInt(mark) || 0), 0);
+};
+
+const submitAllMarks = () => {
+  const allMarks = students.map((student) => {
+    const midSemMarks = JSON.parse(localStorage.getItem(`examiner_${student.registerNumber}_midSem`)) || {};
+    const endSemMarks = JSON.parse(localStorage.getItem(`examiner_${student.registerNumber}_endSem`)) || {};
+    
+    return {
+      registerNumber: student.registerNumber,
+      name: student.name,
+      midSem: midSemMarks,
+      endSem: endSemMarks,
+    };
+  });
+
+  // Prepare email content
+  let emailContent = 'Marks Report:\n\n';
+
+  allMarks.forEach(student => {
+    emailContent += `Student: ${student.name} (${student.registerNumber})\n`;
+    
+    // Mid-Semester Marks
+    emailContent += 'Mid-Sem Marks:\n';
+    if (Object.keys(student.midSem).length === 0) {
+      emailContent += `No marks entered for Mid-Sem\n`;
+    } else {
+      Object.keys(student.midSem).forEach(key => {
+        emailContent += `${fieldDisplayNames[key]}: ${student.midSem[key] || 'Not Entered'}\n`;
+      });
+    }
+    
+    // End-Semester Marks
+    emailContent += 'End-Sem Marks:\n';
+    if (Object.keys(student.endSem).length === 0) {
+      emailContent += `No marks entered for End-Sem\n`;
+    } else {
+      Object.keys(student.endSem).forEach(key => {
+        emailContent += `${fieldDisplayNames[key]}: ${student.endSem[key] || 'Not Entered'}\n`;
+      });
+    }
+    
+    emailContent += '\n'; // Add space between students
+  });
+
+  // Sending email using EmailJS
+  emailjs.send('service_2httliq', 'template_tqb9dri', {
+    message: emailContent,
+    to_email: 'amane.eken@gmail.com' // replace with recipient's email
+  })
+  .then((response) => {
+    console.log('Email sent successfully!', response.status, response.text);
+    alert('All marks have been emailed successfully!');
+  })
+  .catch((error) => {
+    console.error('Failed to send email:', error);
+    alert('Failed to send email. Please try again later.');
+  });
+};
+
 
   return (
     <div className="examiner-container">
@@ -288,7 +354,7 @@ const Examiner = () => {
 
       {/* Submit All Marks Button */}
       <div className="submit-button-container">
-        <button onClick={() => alert('Marks updated successfully.')}>
+        <button onClick={submitAllMarks}>
           Submit All Marks
         </button>
       </div>
@@ -297,26 +363,44 @@ const Examiner = () => {
       {modalOpen && (
         <div className="modal">
           <div className="modal-content">
-            <h2 className="enter-marks">Enter {modalOpen === 'midSem' ? 'Mid-Sem' : 'End-Sem'} Marks for {currentStudent?.name}</h2>
-            <div className="modal-form">
-              {Object.keys(marks[modalOpen]).map((field) => (
-                <div key={field} className="modal-field">
-                  <label className="modal-label">{fieldDisplayNames[field]}</label>
-                  <input
-                    type="number"
-                    name={field}
-                    value={marks[modalOpen][field]}
-                    onChange={handleMarksChange}
-                    className="modal-input"
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="button-group">
-              <button onClick={submitMarks}>Submit Marks</button>
-              <button onClick={closeModal}>Close</button>
-            </div>
+      <h2 className="enter-marks">Enter {modalOpen === 'midSem' ? 'Mid-Sem' : 'End-Sem'} Marks for {currentStudent?.name}</h2>
+      <div className="modal-form">
+        {Object.keys(marks[modalOpen]).map((field) => (
+          <div key={field} className="modal-field">
+            <label className="modal-label">{fieldDisplayNames[field]}</label>
+            <input
+              type="number"
+              name={field}
+              value={marks[modalOpen][field]}
+              onChange={handleMarksChange}
+              className="modal-input"
+            />
           </div>
+        ))}
+      </div>
+      {/* Calculate total marks */}
+      <div className="modal-total-container">
+      <div
+  className="modal-total"
+  style={{
+    fontSize: '16px',          // Adjust the font size
+    fontWeight: 'bold',        // Make the text bold
+    color: '#333',             // Set the text color
+    margin: '10px 0',
+    marginBottom: '20px',         // Add some margin around
+    textAlign: 'center',       // Center the text
+  }}
+>
+  Total Marks: {calculateCurrentTotal()} / {modalOpen === 'midSem' ? 40 : 40}
+  
+</div>
+
+      </div>
+      <div className="button-group">
+        <button onClick={submitMarks}>Submit Marks</button>
+        <button onClick={closeModal}>Close</button>
+      </div>
+    </div>
         </div>
       )}
     </div>
